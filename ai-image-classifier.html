@@ -10760,25 +10760,31 @@ ul#help_menu li a i {
 .dropdown-submenu:hover > a:after {
   color: #262626;
 }
+
+
+
+
+
 .dropdown-submenu.pull-left {
   float: none;
 }
+
 .dropdown-submenu.pull-left > .dropdown-menu {
   left: -100%;
   margin-left: 10px;
 }
+
 #notification_area {
   float: right !important;
-  float: right;
   z-index: 10;
 }
+
 [dir="rtl"] #notification_area {
   float: left !important;
-  float: left;
 }
+
 .indicator_area {
   float: right !important;
-  float: right;
   color: #777;
   margin-left: 5px;
   margin-right: 5px;
@@ -10787,13 +10793,13 @@ ul#help_menu li a i {
   text-align: center;
   width: auto;
 }
+
 [dir="rtl"] .indicator_area {
   float: left !important;
-  float: left;
 }
+
 #kernel_indicator {
   float: right !important;
-  float: right;
   color: #777;
   margin-left: 5px;
   margin-right: 5px;
@@ -10803,16 +10809,22 @@ ul#help_menu li a i {
   width: auto;
   border-left: 1px solid;
 }
+
 #kernel_indicator .kernel_indicator_name {
   padding-left: 5px;
   padding-right: 5px;
 }
+
 [dir="rtl"] #kernel_indicator {
   float: left !important;
-  float: left;
   border-left: 0;
   border-right: 1px solid;
 }
+
+
+
+
+
 #modal_indicator {
   float: right !important;
   float: right;
@@ -11902,98 +11914,83 @@ div#notebook {
 <!-- Load mathjax -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS_HTML"></script>
     <!-- MathJax configuration -->
+
+
+
     <script type="text/x-mathjax-config">
-    MathJax.Hub.Config({
-        tex2jax: {
-            inlineMath: [ ['$','$'], ["\\(","\\)"] ],
-            displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
-            processEscapes: true,
-            processEnvironments: true
-        },
-        // Center justify equations in code and markdown cells. Elsewhere
-        // we use CSS to left justify single line equations in code cells.
-        displayAlign: 'center',
-        "HTML-CSS": {
-            styles: {'.MathJax_Display': {"margin": 0}},
-            linebreaks: { automatic: true }
-        }
-    });
-    </script>
-    <!-- End of mathjax configuration --></head>
-<body>
+      MathJax.Hub.Config({
+          tex2jax: {
+              inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+              displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+              processEscapes: true,
+              processEnvironments: true
+          },
+          displayAlign: 'center',
+          "HTML-CSS": {
+              styles: {'.MathJax_Display': {"margin": 0}},
+              linebreaks: { automatic: true }
+          }
+      });
+  </script>
+  
   <div tabindex="-1" id="notebook" class="border-box-sizing">
-    <div class="container" id="notebook-container">
+      <div class="container" id="notebook-container">
+  
+  <div class="cell border-box-sizing text_cell rendered">
+      <div class="inner_cell">
+          <div class="text_cell_render border-box-sizing rendered_html">
+              <h1 id="Developing-an-AI-application">Developing an AI application<a class="anchor-link" href="#Developing-an-AI-application">&#182;</a></h1>
+              <p>Going forward, AI algorithms will be incorporated into more and more everyday applications. For example, you might want to include an image classifier in a smart phone app. To do this, you'd use a deep learning model trained on hundreds of thousands of images as part of the overall application architecture. A large part of software development in the future will be using these types of models as common parts of applications.</p>
+              <p>In this project, you'll train an image classifier to recognize different species of flowers. You can imagine using something like this in a phone app that tells you the name of the flower your camera is looking at. In practice you'd train this classifier, then export it for use in your application. We'll be using <a href="http://www.robots.ox.ac.uk/~vgg/data/flowers/102/index.html">this dataset</a> of 102 flower categories, you can see a few examples below.</p>
+              <p><img src='assets/Flowers.png' width=500px></p>
+              <p>The project is broken down into multiple steps:</p>
+              <ul>
+                  <li>Load and preprocess the image dataset</li>
+                  <li>Train the image classifier on your dataset</li>
+                  <li>Use the trained classifier to predict image content</li>
+              </ul>
+              <p>We'll lead you through each part which you'll implement in Python.</p>
+              <p>When you've completed this project, you'll have an application that can be trained on any set of labeled images. Here your network will be learning about flowers and end up as a command line application. But, what you do with your new skills depends on your imagination and effort in building a dataset. For example, imagine an app where you take a picture of a car, it tells you what the make and model is, then looks up information about it. Go build your own dataset and make something new.</p>
+              <p>First up is importing the packages you'll need. It's good practice to keep all the imports at the beginning of your code. As you work through this notebook and find you need to import a package, make sure to add the import up here.</p>
+              <p>Please make sure if you are running this notebook in the workspace that you have chosen GPU rather than CPU mode.</p>
+          </div>
+      </div>
+  </div>
+  
+  <div class="cell border-box-sizing code_cell rendered">
+      <div class="inner_cell">
+          <div class="input_area">
+              <pre><code>%matplotlib inline
+  %config InlineBackend.figure_format = 'retina'
+  
+  import matplotlib.pyplot as plt
+  import matplotlib.image as mpimg
+  import numpy as np
+  import time
+  import torch
+  from PIL import Image
+  import matplotlib.gridspec as gridspec
+  from torch import nn
+  from torch import optim
+  import torch.nn.functional as F
+  from torch.autograd import Variable
+  from torchvision import datasets, transforms, models
+  from collections import OrderedDict
+  import json</code></pre>
+          </div>
+      </div>
+  </div>
+  
+  <div class="cell border-box-sizing text_cell rendered">
+      <div class="inner_cell">
+          <div class="text_cell_render border-box-sizing rendered_html">
+              <h2 id="Load-the-data">Load the data<a class="anchor-link" href="#Load-the-data">&#182;</a></h2>
+              <p>Here you'll use <code>torchvision</code> to load the data (<a href="http://pytorch.org/docs/0.3.0/torchvision/index.html">documentation</a>). The data should be included alongside this notebook, otherwise you can <a href="https://s3.amazonaws.com/content.udacity-data.com/nd089/flower_data.tar.gz">download it here</a>. The dataset is split into three parts, training, validation, and testing. For the training, you'll want to apply transformations such as random scaling, cropping, and flipping. This will help the network generalize leading to better performance. You'll also need to make sure the input data is resized to 224x224 pixels as required by the pre-trained networks.</p>
+              <p>The validation and testing sets are used to measure the model's performance on data it hasn't seen yet. For this you don't want any scaling or rotation transformations, but you'll need to resize then crop the images to the appropriate size.</p>
+              <p>The pre-trained networks you'll use were trained on the ImageNet dataset where each color channel was normalized separately. For all three sets you'll need to normalize the means and standard deviations of the images to what the network expects. For the means, it's <code>[0.485, 0.456, 0.406]</code> and for the standard deviations <code>[0.229, 0.224, 0.225]</code>,
+  
 
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Developing-an-AI-application">Developing an AI application<a class="anchor-link" href="#Developing-an-AI-application">&#182;</a></h1><p>Going forward, AI algorithms will be incorporated into more and more everyday applications. For example, you might want to include an image classifier in a smart phone app. To do this, you'd use a deep learning model trained on hundreds of thousands of images as part of the overall application architecture. A large part of software development in the future will be using these types of models as common parts of applications.</p>
-<p>In this project, you'll train an image classifier to recognize different species of flowers. You can imagine using something like this in a phone app that tells you the name of the flower your camera is looking at. In practice you'd train this classifier, then export it for use in your application. We'll be using <a href="http://www.robots.ox.ac.uk/~vgg/data/flowers/102/index.html">this dataset</a> of 102 flower categories, you can see a few examples below.</p>
-<p><img src='assets/Flowers.png' width=500px></p>
-<p>The project is broken down into multiple steps:</p>
-<ul>
-<li>Load and preprocess the image dataset</li>
-<li>Train the image classifier on your dataset</li>
-<li>Use the trained classifier to predict image content</li>
-</ul>
-<p>We'll lead you through each part which you'll implement in Python.</p>
-<p>When you've completed this project, you'll have an application that can be trained on any set of labeled images. Here your network will be learning about flowers and end up as a command line application. But, what you do with your new skills depends on your imagination and effort in building a dataset. For example, imagine an app where you take a picture of a car, it tells you what the make and model is, then looks up information about it. Go build your own dataset and make something new.</p>
-<p>First up is importing the packages you'll need. It's good practice to keep all the imports at the beginning of your code. As you work through this notebook and find you need to import a package, make sure to add the import up here.</p>
-<p>Please make sure if you are running this notebook in the workspace that you have chosen GPU rather than CPU mode.</p>
 
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[1]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># Imports here</span>
-
-<span class="o">%</span><span class="k">matplotlib</span> inline
-<span class="o">%</span><span class="k">config</span> InlineBackend.figure_format = &#39;retina&#39;
-
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">matplotlib.image</span> <span class="k">as</span> <span class="nn">mpimg</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-<span class="kn">from</span> <span class="nn">PIL</span> <span class="k">import</span> <span class="n">Image</span>
-<span class="kn">import</span> <span class="nn">matplotlib.gridspec</span> <span class="k">as</span> <span class="nn">gridspec</span>
-<span class="kn">from</span> <span class="nn">torch</span> <span class="k">import</span> <span class="n">nn</span>
-<span class="kn">from</span> <span class="nn">torch</span> <span class="k">import</span> <span class="n">optim</span>
-<span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
-<span class="kn">from</span> <span class="nn">torch.autograd</span> <span class="k">import</span> <span class="n">Variable</span>
-<span class="kn">from</span> <span class="nn">torchvision</span> <span class="k">import</span> <span class="n">datasets</span><span class="p">,</span> <span class="n">transforms</span><span class="p">,</span> <span class="n">models</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
-<span class="kn">import</span> <span class="nn">json</span>
-</pre></div>
-
-    </div>
-</div>
-</div>
-
-</div>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="Load-the-data">Load the data<a class="anchor-link" href="#Load-the-data">&#182;</a></h2><p>Here you'll use <code>torchvision</code> to load the data (<a href="http://pytorch.org/docs/0.3.0/torchvision/index.html">documentation</a>). The data should be included alongside this notebook, otherwise you can <a href="https://s3.amazonaws.com/content.udacity-data.com/nd089/flower_data.tar.gz">download it here</a>. The dataset is split into three parts, training, validation, and testing. For the training, you'll want to apply transformations such as random scaling, cropping, and flipping. This will help the network generalize leading to better performance. You'll also need to make sure the input data is resized to 224x224 pixels as required by the pre-trained networks.</p>
-<p>The validation and testing sets are used to measure the model's performance on data it hasn't seen yet. For this you don't want any scaling or rotation transformations, but you'll need to resize then crop the images to the appropriate size.</p>
-<p>The pre-trained networks you'll use were trained on the ImageNet dataset where each color channel was normalized separately. For all three sets you'll need to normalize the means and standard deviations of the images to what the network expects. For the means, it's <code>[0.485, 0.456, 0.406]</code> and for the standard deviations <code>[0.229, 0.224, 0.225]</code>, calculated from the ImageNet images.  These values will shift each color channel to be centered at 0 and range from -1 to 1.</p>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[2]:</div>
-<div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="n">data_dir</span> <span class="o">=</span> <span class="s1">&#39;flowers&#39;</span>
-<span class="n">train_dir</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">+</span> <span class="s1">&#39;/train&#39;</span>
-<span class="n">valid_dir</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">+</span> <span class="s1">&#39;/valid&#39;</span>
-<span class="n">test_dir</span> <span class="o">=</span> <span class="n">data_dir</span> <span class="o">+</span> <span class="s1">&#39;/test&#39;</span>
 </pre></div>
 
     </div>
