@@ -99,60 +99,75 @@ def train_model(image_datasets, arch='vgg19', hidden_units=4096, epochs=25, lear
     optimizer = optim.SGD(list(filter(lambda p: p.requires_grad, model.parameters())), lr=learning_rate, momentum=0.9)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)    
 
-    since = time.time()
-    best_model_wts = copy.deepcopy(model.state_dict())
-    best_acc = 0.0
+    first_time = time.time()
+    best_model = copy.deepcopy(model.state_dict())
+    acc = 0.0
 
-    for epoch in range(epochs):
-        print('Epoch {}/{}'.format(epoch + 1, epochs))
-        print('-' * 10)
+    epoch = 0
+    while epoch < epochs:
+      print(f'Epoch {epoch + 1}/{epochs}')
+      print('-' * 10)
 
-        for phase in ['train', 'valid']:
-            if phase == 'train':
-                scheduler.step()
-                model.train()
-            else:
-                model.eval()
+      phase = 'train'
+      if phase == 'train':
+        scheduler.step()
+        model.train()
+      else:
+        model.eval()
 
-            running_loss = 0.0
-            running_corrects = 0
+      epoch += 1
 
-            for inputs, labels in dataloaders[phase]:                
-                inputs = inputs.to(device)
-                labels = labels.to(device)
+    loss_running = 0.0
+    corrects_running = 0
 
-                optimizer.zero_grad()
+    dataloaders_iterator = iter(dataloaders[phase])
+    dataset_size = dataset_sizes[phase]
 
-                with torch.set_grad_enabled(phase == 'train'):
-                    outputs = model(inputs)
-                    _, preds = torch.max(outputs, 1)
-                    loss = criterion(outputs, labels)
+    loss_running = 0.0
+    corrects_running = 0
+    batch_count = 0
 
-                    if phase == 'train':
-                        loss.backward()
-                        optimizer.step()
+    while batch_count < len(dataloaders[phase]):
+       try:
+        inputs, labels = next(dataloaders_iterator)
+       except StopIteration:
+        break
+    
+    inputs = inputs.to(device)
+    labels = labels.to(device)
 
-                running_loss += loss.item() * inputs.size(0)
-                running_corrects += torch.sum(preds == labels.data)
+    optimizer.zero_grad()
 
-            epoch_loss = running_loss / dataset_sizes[phase]
-            epoch_acc = running_corrects.double() / dataset_sizes[phase]
+    with torch.set_grad_enabled(phase == 'train'):
+        outputs = model(inputs)
+        _, preds = torch.max(outputs, 1)
+        loss = criterion(outputs, labels)
 
-            print('{} Loss: {:.4f} Acc: {:.4f}'.format(
-                phase, epoch_loss, epoch_acc))
+        if phase == 'train':
+            loss.backward()
+            optimizer.step()
 
-            if phase == 'valid' and epoch_acc > best_acc:
-                best_acc = epoch_acc
-                best_model_wts = copy.deepcopy(model.state_dict())
+    loss_running += loss.item() * inputs.size(0)
+    corrects_running += torch.sum(preds == labels.data)
+    batch_count += 1
 
-        print()
+    loss_epoch = loss_running / dataset_size
+    acc_epoch = corrects_running.double() / dataset_size
 
-    time_elapsed = time.time() - since
-    print('Training complete in {:.0f}m {:.0f}s'.format(
-        time_elapsed // 60, time_elapsed % 60))
-    print('Best val Acc: {:4f}'.format(best_acc))
+    print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, loss_epoch, acc_epoch))
 
-    model.load_state_dict(best_model_wts)
+    if phase == 'valid' and acc_epoch > acc:
+      acc = acc_epoch
+    best_model = copy.deepcopy(model.state_dict())
+
+    print()
+
+    elapsed_time = time.time() - first_time
+    print('The training has completed in {:.0f}m {:.0f}s'.format(elapsed_time // 60, elapsed_time % 60))
+    print('The val acc which is the best: {:4f}'.format(acc))
+
+
+    model.load_state_dict(best_model)
     model.class_to_idx = image_datasets['train'].class_to_idx
 
     if checkpoint:
